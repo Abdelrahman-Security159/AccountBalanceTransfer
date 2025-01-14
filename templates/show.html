@@ -1,0 +1,85 @@
+{% extends '_master.html' %} 
+{% load static %}
+{% load filters %}
+
+{% block title %}All Accounts{% endblock %}
+
+{% block content %}
+<div class="row page-titles mx-0">
+    <div class="col-sm-6 p-md-0">
+        <div class="welcome-text">
+            <h4>Hi, This's the account Details!</h4>
+            <p class="mb-0">Here's the whole information about this account.</p>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">Profile</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#home8">
+                                <span>
+                                    <i class="ti-user"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#profile8">
+                                <span>
+                                    <i class="ti-home"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#messages8">
+                                <span>
+                                    <i class="ti-money"></i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- Tab panes -->
+                    <div class="tab-content tabcontent-border">
+                        <div class="tab-pane fade show active" id="home8" role="tabpanel">
+                            <div class="pt-4">
+                                <h4>Account Name</h4>
+                                <p>
+                                    {{ account.username }}
+                                </p>
+                                
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="profile8" role="tabpanel">
+                            <div class="pt-4">
+                                <h4>Account ID</h4>
+                                <p>{{ account.account_id }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="messages8" role="tabpanel">
+                            <div class="pt-4">
+                                <h4>Account Balance</h4>
+                                <p>
+                                    {{ account.balance }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block cus_js %}
+
+{% endblock %}

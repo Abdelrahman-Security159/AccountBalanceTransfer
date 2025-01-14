@@ -1,0 +1,222 @@
+{% extends '_master.html' %} 
+{% load static %}
+{% load filters %}
+
+{% block title %}All Accounts{% endblock %}
+
+{% block content %}
+<div class="row page-titles mx-0">
+    <div class="col-sm-6 p-md-0">
+        <div class="welcome-text">
+            <h4>Hi, This's the accounts' list!</h4>
+            <p class="mb-0">Just open account transfer to transfer the balance.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 col-sm-6">
+        <div class="card">
+            <div class="stat-widget-one card-body">
+                <div class="stat-icon d-inline-block">
+                    <i class="ti-user text-primary border-primary"></i>
+                </div>
+                <div class="stat-content d-inline-block">
+                    <div class="stat-text">Number of Accounts</div>
+                    <div class="stat-digit">{{ accounts|count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-sm-6">
+        <div class="card">
+            <div class="stat-widget-one card-body">
+                <div class="stat-icon d-inline-block">
+                    <i class="ti-money text-success border-success"></i>
+                </div>
+                <div class="stat-content d-inline-block">
+                    <div class="stat-text">Total Balance</div>
+                    <div class="stat-digit">{{ accounts_sum }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Basic Datatable</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="example" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Account Name</th>
+                                <th>Balance</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in accounts %}
+                                <tr>
+                                    <td>{{ account.id }}</td>
+                                    <td>{{ account.username }}</td>
+                                    <td>{{ account.balance }}</td>
+                                    <td class="text-center">
+                                        <div class="button-dropdown">
+                                            <div class="btn-group m-b-10">
+                                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+                                                    Actions
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <a class="dropdown-item transfer-btn" href="#" data-toggle="modal" data-target="#transfer-modal" data-account-id="{{ account.id }}" data-account-name="{{ account.username }}">
+                                                        Transfer
+                                                    </a>
+                                                    <a class="dropdown-item transfer-btn" href="{% url 'account:show' id=account.account_id %}">
+                                                        Show Profile
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>ID</th>
+                                <th>Account Name</th>
+                                <th>Balance</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transfer-modal" tabindex="-1" role="dialog" aria-labelledby="transfer-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transfer-modal-label">Transfer From <span id="source-account-name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="source-account-id">
+                <div class="form-group">
+                    <label for="target-account">Select Target Account</label>
+                    <select class="form-control" id="target-account" required>
+                        <option value="" disabled selected>Select an account</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transfer-amount">Transfer Amount</label>
+                    <input type="number" class="form-control" id="transfer-amount" placeholder="Enter amount" step="0.01" min="0" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary transfer-submit">Transfer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block cus_js %}
+<script>
+    $(document).ready(function() {
+        // When the transfer button is clicked, populate the modal with the relevant data
+        $('.transfer-btn').on('click', function() {
+            var sourceAccountId = $(this).data('account-id');
+            var sourceAccountName = $(this).data('account-name');
+
+            // Set the source account details in the modal
+            $('#source-account-id').val(sourceAccountId);
+            $('#source-account-name').text(sourceAccountName);
+
+            // Clear previous options and populate the target account dropdown
+            $('#target-account').empty().append('<option value="" disabled selected>Select an account</option>');
+            {% for acc in accounts %}
+                {% if acc.id != account.id %}
+                    $('#target-account').append('<option value="{{ acc.id }}">{{ acc.username }}</option>');
+                {% endif %}
+            {% endfor %}
+        });
+
+        // Handle the transfer submission
+        $('.transfer-submit').on('click', function() {
+            var sourceAccountId = $('#source-account-id').val();
+            var targetAccountId = $('#target-account').val();
+            var transferAmount = $('#transfer-amount').val();
+
+            if (!targetAccountId) {
+                showSweetAlert('warning', 'Please select a target account.');
+                return;
+            }
+            if (targetAccountId == sourceAccountId) {
+                showSweetAlert('warning', 'Please select another account.');
+                return;
+            }
+            if (!transferAmount || isNaN(transferAmount) || parseFloat(transferAmount) <= 0) {
+                showSweetAlert('warning', 'Please enter a valid transfer amount.');
+                return;
+            }
+
+            var data = {
+                'source_account_id': sourceAccountId,
+                'target_account_id': targetAccountId,
+                'amount': transferAmount,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            };
+
+            $.ajax({
+                url: '{% url "account:transfer" %}',
+                type: 'POST',
+                data: data,
+                success: function(response) {
+                    if (response.success) {
+                        showSweetAlert('success', 'Transfer successful!');
+                        location.reload();
+                    } else {
+                        showSweetAlert('error', 'Transfer failed: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showSweetAlert('error', 'An error occurred: ' + error);
+                }
+            });
+        });
+
+        // Function to display SweetAlert2 alerts
+        function showSweetAlert(type, message) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            Toast.fire({
+                icon: type,
+                title: message
+            });
+        }
+    });
+</script>
+{% endblock %}
